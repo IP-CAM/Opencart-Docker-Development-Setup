@@ -38,6 +38,29 @@ You can of course rename the uploads folder, and setup the software differently.
 Apache2 server logs are in the `docker/logs` folder
 
 
+## Mailcatcher
+
+Set up on admin page at **System -> Settings -> Edit store -> Mail** tab:
+
+Mail Engine: SMTP
+Hostname: mailcatcher
+Port: 1025
+
+Username and Password should be empty.
+
+In `/var/www/html/your-folder/system/library/mail/smtp.php` -> comment out these conditions temporarily:
+
+```php
+if (empty($this->option['smtp_username'])) {
+	throw new \Exception('Error: SMTP username required!');
+}
+
+if (empty($this->option['smtp_password'])) {
+	throw new \Exception('Error: SMTP password required!');
+}
+```
+
+
 ## Docker
 
 Start containers:
