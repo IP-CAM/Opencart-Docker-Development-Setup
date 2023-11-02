@@ -1,0 +1,67 @@
+version: '3'
+services:
+
+  php-apache:
+    container_name: "${APP_NAME}-php-apache"
+    build:
+      context: ./php-apache
+      dockerfile: Dockerfile
+    volumes:
+      - ./php-apache/php.ini:/usr/local/etc/php/php.ini
+      - ./logs/apache:/var/log/apache2
+      - ./php-apache/sites:/etc/apache2/sites-available
+      - ../:/var/www/html/
+    ports:
+      - 80:80
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USERNAME: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_DATABASE}
+      MYSQL_PORT: 3306
+
+  mysql:
+    image: mysql:8.0
+    container_name: "${APP_NAME}-mysql"
+    ports:
+      - "33006:3306"
+    volumes:
+      - opencart_data:/var/lib/mysql
+    environment: # mysql options
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+
+    # for mysql 8.0, change autentication to native password (legacy)
+    command: [
+      '--default-authentication-plugin=mysql_native_password',
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci'
+    ]
+
+  phpmyadmin:
+    depends_on:
+      - mysql
+    image: phpmyadmin/phpmyadmin
+    container_name: "${APP_NAME}-phpmyadmin"
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql:${DB_PORT}
+    ports:
+      - "1337:80"
+
+
+  mailcatcher:
+    restart: on-failure
+    container_name: "${APP_NAME}-mailcatcher"
+    image: sj26/mailcatcher:v0.8.2
+    ports:
+      - "1081:1080"
+      - "1026:1025"
+
+
+volumes:
+  opencart_data: { }
+
+
